@@ -1,8 +1,8 @@
-package com.androidtut.qaifi.bluetoothchatapp;
+package com.sid_pug.sim.bluetoothchatapp;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Example local unit test, which will execute on the development machine (host).

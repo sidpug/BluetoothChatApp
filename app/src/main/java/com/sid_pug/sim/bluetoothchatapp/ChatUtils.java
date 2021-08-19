@@ -1,4 +1,4 @@
-package com.androidtut.qaifi.bluetoothchatapp;
+package com.sid_pug.sim.bluetoothchatapp;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -21,21 +21,18 @@ import java.util.UUID;
  */
 
 public class ChatUtils {
-    private Context context;
-    private final Handler handler;
-    private BluetoothAdapter bluetoothAdapter;
-    private ConnectThread connectThread;
-    private AcceptThread acceptThread;
-    private ConnectedThread connectedThread;
-
-    private final UUID APP_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
-    private final String APP_NAME = "BluetoothChatApp";
-
     public static final int STATE_NONE = 0;
     public static final int STATE_LISTEN = 1;
     public static final int STATE_CONNECTING = 2;
     public static final int STATE_CONNECTED = 3;
-
+    private final Handler handler;
+    private final UUID APP_UUID = UUID.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66");
+    private final String APP_NAME = "BluetoothChatApp";
+    private Context context;
+    private BluetoothAdapter bluetoothAdapter;
+    private ConnectThread connectThread;
+    private AcceptThread acceptThread;
+    private ConnectedThread connectedThread;
     private int state;
 
     public ChatUtils(Context context, Handler handler) {
@@ -120,6 +117,49 @@ public class ChatUtils {
         }
 
         connThread.write(buffer);
+    }
+
+    private void connectionLost() {
+        Message message = handler.obtainMessage(MainActivity.MESSAGE_TOAST);
+        Bundle bundle = new Bundle();
+        bundle.putString(MainActivity.TOAST, "Connection Lost");
+        message.setData(bundle);
+        handler.sendMessage(message);
+
+        ChatUtils.this.start();
+    }
+
+    private synchronized void connectionFailed() {
+        Message message = handler.obtainMessage(MainActivity.MESSAGE_TOAST);
+        Bundle bundle = new Bundle();
+        bundle.putString(MainActivity.TOAST, "Cant connect to the device");
+        message.setData(bundle);
+        handler.sendMessage(message);
+
+        ChatUtils.this.start();
+    }
+
+    private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
+        if (connectThread != null) {
+            connectThread.cancel();
+            connectThread = null;
+        }
+
+        if (connectedThread != null) {
+            connectedThread.cancel();
+            connectedThread = null;
+        }
+
+        connectedThread = new ConnectedThread(socket);
+        connectedThread.start();
+
+        Message message = handler.obtainMessage(MainActivity.MESSAGE_DEVICE_NAME);
+        Bundle bundle = new Bundle();
+        bundle.putString(MainActivity.DEVICE_NAME, device.getName());
+        message.setData(bundle);
+        handler.sendMessage(message);
+
+        setState(STATE_CONNECTED);
     }
 
     private class AcceptThread extends Thread {
@@ -273,48 +313,5 @@ public class ChatUtils {
 
             }
         }
-    }
-
-    private void connectionLost() {
-        Message message = handler.obtainMessage(MainActivity.MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(MainActivity.TOAST, "Connection Lost");
-        message.setData(bundle);
-        handler.sendMessage(message);
-
-        ChatUtils.this.start();
-    }
-
-    private synchronized void connectionFailed() {
-        Message message = handler.obtainMessage(MainActivity.MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(MainActivity.TOAST, "Cant connect to the device");
-        message.setData(bundle);
-        handler.sendMessage(message);
-
-        ChatUtils.this.start();
-    }
-
-    private synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
-        if (connectThread != null) {
-            connectThread.cancel();
-            connectThread = null;
-        }
-
-        if (connectedThread != null) {
-            connectedThread.cancel();
-            connectedThread = null;
-        }
-
-        connectedThread = new ConnectedThread(socket);
-        connectedThread.start();
-
-        Message message = handler.obtainMessage(MainActivity.MESSAGE_DEVICE_NAME);
-        Bundle bundle = new Bundle();
-        bundle.putString(MainActivity.DEVICE_NAME, device.getName());
-        message.setData(bundle);
-        handler.sendMessage(message);
-
-        setState(STATE_CONNECTED);
     }
 }

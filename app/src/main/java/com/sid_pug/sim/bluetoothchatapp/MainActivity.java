@@ -1,4 +1,4 @@
-package com.androidtut.qaifi.bluetoothchatapp;
+package com.sid_pug.sim.bluetoothchatapp;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -9,11 +9,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,38 +23,32 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
-    private Context context;
-    private BluetoothAdapter bluetoothAdapter;
-    private ChatUtils chatUtils;
-
-    private ListView listMainChat;
-    private EditText edCreateMessage;
-    private Button btnSendMessage;
-    private ArrayAdapter<String> adapterMainChat;
-
-    private final int LOCATION_PERMISSION_REQUEST = 101;
-    private final int SELECT_DEVICE = 102;
-
     public static final int MESSAGE_STATE_CHANGED = 0;
     public static final int MESSAGE_READ = 1;
     public static final int MESSAGE_WRITE = 2;
     public static final int MESSAGE_DEVICE_NAME = 3;
     public static final int MESSAGE_TOAST = 4;
-
     public static final String DEVICE_NAME = "deviceName";
     public static final String TOAST = "toast";
+    private final int LOCATION_PERMISSION_REQUEST = 101;
+    private final int SELECT_DEVICE = 102;
+    private Context context;
+    private BluetoothAdapter bluetoothAdapter;
+    private ChatUtils chatUtils;
+    private EditText edCreateMessage;
+    private ArrayAdapter<String> adapterMainChat;
     private String connectedDevice;
 
-    private Handler handler = new Handler(new Handler.Callback() {
+    private final Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             switch (message.what) {
                 case MESSAGE_STATE_CHANGED:
                     switch (message.arg1) {
                         case ChatUtils.STATE_NONE:
-                            setState("Not Connected");
-                            break;
                         case ChatUtils.STATE_LISTEN:
                             setState("Not Connected");
                             break;
@@ -89,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     });
 
     private void setState(CharSequence subTitle) {
-        getSupportActionBar().setSubtitle(subTitle);
+        Objects.requireNonNull(getSupportActionBar()).setSubtitle(subTitle);
     }
 
     @Override
@@ -105,9 +99,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void init() {
-        listMainChat = findViewById(R.id.list_conversation);
+        ListView listMainChat = findViewById(R.id.list_conversation);
         edCreateMessage = findViewById(R.id.ed_enter_message);
-        btnSendMessage = findViewById(R.id.btn_send_msg);
+        Button btnSendMessage = findViewById(R.id.btn_send_msg);
 
         adapterMainChat = new ArrayAdapter<String>(context, R.layout.message_layout);
         listMainChat.setAdapter(adapterMainChat);

@@ -1,4 +1,4 @@
-package com.androidtut.qaifi.bluetoothchatapp;
+package com.sid_pug.sim.bluetoothchatapp;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,12 +23,31 @@ import android.widget.Toast;
 import java.util.Set;
 
 public class DeviceListActivity extends AppCompatActivity {
-    private ListView listPairedDevices, listAvailableDevices;
     private ProgressBar progressScanDevices;
 
-    private ArrayAdapter<String> adapterPairedDevices, adapterAvailableDevices;
+    private ArrayAdapter<String> adapterAvailableDevices;
     private Context context;
     private BluetoothAdapter bluetoothAdapter;
+    private BroadcastReceiver bluetoothDeviceListener = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
+                    adapterAvailableDevices.add(device.getName() + "\n" + device.getAddress());
+                }
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
+                progressScanDevices.setVisibility(View.GONE);
+                if (adapterAvailableDevices.getCount() == 0) {
+                    Toast.makeText(context, "No new devices found", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(context, "Click on the device to start the chat", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +59,11 @@ public class DeviceListActivity extends AppCompatActivity {
     }
 
     private void init() {
-        listPairedDevices = findViewById(R.id.list_paired_devices);
-        listAvailableDevices = findViewById(R.id.list_available_devices);
+        ListView listPairedDevices = findViewById(R.id.list_paired_devices);
+        ListView listAvailableDevices = findViewById(R.id.list_available_devices);
         progressScanDevices = findViewById(R.id.progress_scan_devices);
 
-        adapterPairedDevices = new ArrayAdapter<String>(context, R.layout.device_list_item);
+        ArrayAdapter<String> adapterPairedDevices = new ArrayAdapter<String>(context, R.layout.device_list_item);
         adapterAvailableDevices = new ArrayAdapter<String>(context, R.layout.device_list_item);
 
         listPairedDevices.setAdapter(adapterPairedDevices);
@@ -95,27 +114,6 @@ public class DeviceListActivity extends AppCompatActivity {
             }
         });
     }
-
-    private BroadcastReceiver bluetoothDeviceListener = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    adapterAvailableDevices.add(device.getName() + "\n" + device.getAddress());
-                }
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                progressScanDevices.setVisibility(View.GONE);
-                if (adapterAvailableDevices.getCount() == 0) {
-                    Toast.makeText(context, "No new devices found", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(context, "Click on the device to start the chat", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
